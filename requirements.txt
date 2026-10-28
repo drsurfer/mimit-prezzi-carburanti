@@ -1,0 +1,8 @@
+# Requisiti di sistema per MIMIT Carburanti
+# NOTA: Il codice è stato sviluppato utilizzando esclusivamente la libreria standard di Python 3 (3.8+):
+# - urllib.request (download file CSV)
+# - sqlite3 (database locale ad alte prestazioni)
+# - http.server (server HTTP & REST API multithread)
+# - json, gzip, csv, threading, time, datetime
+#
+# Nessuna libreria esterna obbligatoria è richiesta per eseguire sia l'ETL che il Web Server!

@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+data/*.csv
+carburanti.db
+*.db
+*.sqlite
+sessione_antigravity/
+sessione_antigravity_*.zip
+key google maps.txt
+.gemini/

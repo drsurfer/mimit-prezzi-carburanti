@@ -1,0 +1,58 @@
+name: Aggiornamento Dati MIMIT e Deploy GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    # Esegue ogni mattina alle 07:30 UTC (08:30 / 09:30 ora italiana)
+    - cron: '30 7 * * *'
+  workflow_dispatch: # Permette l'avvio manuale con un clic da GitHub
+
+# Permessi richiesti per il deploy su GitHub Pages
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+# Permette un solo deploy alla volta
+concurrency:
+  group: 'pages'
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del codice
+        uses: actions/checkout@v4
+
+      - name: Configurazione ambiente Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Esecuzione ETL MIMIT (Download CSV e generazione JSON statici)
+        run: |
+          python etl.py
+
+      - name: Commit e salvataggio dei nuovi dati nel repository
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Bot"
+          git add public/data/
+          git commit -m "Auto-aggiornamento dati MIMIT [skip ci]" || echo "Nessuna modifica da salvare"
+          git push || echo "Nessun push necessario"
+
+      - name: Upload dei file per GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'public'
+
+      - name: Deploy su GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
