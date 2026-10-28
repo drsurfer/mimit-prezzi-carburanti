@@ -17,25 +17,69 @@ URL_PREZZI = "https://www.mimit.gov.it/images/exportCSV/prezzo_alle_8.csv"
 DB_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "carburanti.db")
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 
-def download_file(url, target_path):
+def download_file(url, target_path, max_retries=3):
     print(f"Scaricamento da {url}...")
-    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    t0 = time.time()
-    with urllib.request.urlopen(req, timeout=60) as response, open(target_path, "wb") as out_file:
-        chunk_size = 64 * 1024
-        total_bytes = 0
-        while True:
-            chunk = response.read(chunk_size)
-            if not chunk:
-                break
-            out_file.write(chunk)
-            total_bytes += len(chunk)
-    elapsed = time.time() - t0
-    mb = total_bytes / (1024 * 1024)
-    print(f"Completato: {mb:.2f} MB in {elapsed:.2f}s -> {target_path}")
-    return target_path
+    headers = {
+        "User-Agent": USER_AGENT,
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7",
+        "Connection": "keep-alive"
+    }
+
+    # 1. Prova prima con curl (molto più robusto sui runner Linux/Ubuntu per TLS, redirect e WAF)
+    try:
+        import subprocess
+        res = subprocess.run(
+            [
+                "curl", "-sSL",
+                "--connect-timeout", "30",
+                "--max-time", "120",
+                "--retry", "3",
+                "--retry-delay", "3",
+                "-H", f"User-Agent: {headers['User-Agent']}",
+                "-H", f"Accept: {headers['Accept']}",
+                "-H", f"Accept-Language: {headers['Accept-Language']}",
+                url,
+                "-o", target_path
+            ],
+            capture_output=True,
+            timeout=130
+        )
+        if res.returncode == 0 and os.path.exists(target_path) and os.path.getsize(target_path) > 1024:
+            mb = os.path.getsize(target_path) / (1024 * 1024)
+            print(f"Completato (tramite curl): {mb:.2f} MB -> {target_path}")
+            return target_path
+    except Exception:
+        pass
+
+    # 2. Fallback su urllib con tentativi multipli e timeout esteso
+    last_err = None
+    for attempt in range(1, max_retries + 1):
+        try:
+            req = urllib.request.Request(url, headers=headers)
+            t0 = time.time()
+            with urllib.request.urlopen(req, timeout=90) as response, open(target_path, "wb") as out_file:
+                chunk_size = 64 * 1024
+                total_bytes = 0
+                while True:
+                    chunk = response.read(chunk_size)
+                    if not chunk:
+                        break
+                    out_file.write(chunk)
+                    total_bytes += len(chunk)
+            elapsed = time.time() - t0
+            mb = total_bytes / (1024 * 1024)
+            print(f"Completato (tentativo {attempt}): {mb:.2f} MB in {elapsed:.2f}s -> {target_path}")
+            return target_path
+        except Exception as err:
+            last_err = err
+            print(f"Tentativo {attempt}/{max_retries} fallito ({err})...")
+            if attempt < max_retries:
+                time.sleep(4)
+
+    raise last_err
 
 def parse_float_safe(val):
     if not val:
@@ -54,7 +98,6 @@ def run_etl():
     print("=== AVVIO PROCEDURA ACQUISIZIONE DATI CARBURANTI MIMIT ===")
     
     # Se i file CSV esistono già e hanno meno di 12 ore, possono essere riusati in caso di offline
-    should_download = True
     try:
         download_file(URL_ANAGRAFICA, anagrafica_csv)
         download_file(URL_PREZZI, prezzi_csv)
@@ -62,7 +105,12 @@ def run_etl():
         if os.path.exists(anagrafica_csv) and os.path.exists(prezzi_csv):
             print(f"[AVVISO] Download fallito ({e}), utilizzo copie locali dei file CSV.")
         else:
-            raise e
+            public_stations = os.path.join(os.path.dirname(os.path.abspath(__file__)), "public", "data", "stations.json")
+            if os.path.exists(public_stations) and os.path.getsize(public_stations) > 10000:
+                print(f"[AVVISO] Download MIMIT non riuscito ({e}). I file JSON statici in public/data/ sono già presenti e validi: mantengo i dati esistenti.")
+                return
+            else:
+                raise e
 
     print(f"\nConnessione al database SQLite: {DB_FILE}...")
     conn = sqlite3.connect(DB_FILE)

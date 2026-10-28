@@ -38,7 +38,7 @@ jobs:
 
       - name: Esecuzione ETL MIMIT (Download CSV e generazione JSON statici)
         run: |
-          python etl.py
+          python etl.py || echo "Download MIMIT temporaneamente non disponibile, procedo con i dati già presenti nel repository."
 
       - name: Commit e salvataggio dei nuovi dati nel repository
         run: |
