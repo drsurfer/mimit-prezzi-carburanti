@@ -1,0 +1,519 @@
+[
+  {
+    "id": "eni",
+    "name": "Eni / Agip",
+    "stations_count": 4445,
+    "official_site": "https://www.eni.com",
+    "description": "Cane a sei zampe iconico su badge giallo Eni",
+    "files": {
+      "logo": {
+        "filename": "eni.png",
+        "resolution": "1080x1080",
+        "mode": "RGBA",
+        "source_url": "https://api.pieno.plus/assets/images/loghi/agip-eni.png"
+      },
+      "favicon": {
+        "filename": "eni_favicon.png",
+        "resolution": "192x192",
+        "mode": "RGBA",
+        "source_url": "https://www.eni.com/content/dam/enicom/images/favicons/android-icon-192x192.png"
+      }
+    }
+  },
+  {
+    "id": "ip",
+    "name": "IP Gruppo api",
+    "stations_count": 4109,
+    "official_site": "https://www.italianapetroli.it",
+    "description": "Logo IP con rombi tricolori/blu-verde Gruppo api",
+    "files": {
+      "logo": {
+        "filename": "ip.png",
+        "resolution": "1080x1080",
+        "mode": "RGBA",
+        "source_url": "https://api.pieno.plus/assets/images/loghi/api-ip.png"
+      },
+      "favicon": {
+        "filename": "ip_favicon.png",
+        "resolution": "180x180",
+        "mode": "RGBA",
+        "source_url": "https://www.italianapetroli.it/wp-content/uploads/2026/05/cropped-IP_quadrato-180x180.png"
+      }
+    }
+  },
+  {
+    "id": "q8",
+    "name": "Q8 (Kuwait Petroleum)",
+    "stations_count": 2894,
+    "official_site": "https://www.q8.it",
+    "description": "Vele Q8 blu e gialle su fondo trasparente",
+    "files": {
+      "logo": {
+        "filename": "q8.png",
+        "resolution": "1080x1080",
+        "mode": "RGBA",
+        "source_url": "https://api.pieno.plus/assets/images/loghi/q8.png"
+      },
+      "favicon": {
+        "filename": "q8_favicon.png",
+        "resolution": "192x192",
+        "mode": "RGBA",
+        "source_url": "https://www.q8.it/etc.clientlibs/q8italy/clientlibs/clientlib-common/resources/icon-192x192.png"
+      }
+    }
+  },
+  {
+    "id": "esso",
+    "name": "Esso",
+    "stations_count": 2272,
+    "official_site": "https://www.eseitalia.it",
+    "description": "Ovale rosso Esso con bordo blu",
+    "files": {
+      "logo": {
+        "filename": "esso.png",
+        "resolution": "1080x1080",
+        "mode": "RGBA",
+        "source_url": "https://api.pieno.plus/assets/images/loghi/esso.png"
+      },
+      "favicon": {
+        "filename": "esso_favicon.png",
+        "resolution": "144x144",
+        "mode": "RGBA",
+        "source_url": "https://icons.duckduckgo.com/ip3/esso.com.ico"
+      }
+    }
+  },
+  {
+    "id": "tamoil",
+    "name": "Tamoil",
+    "stations_count": 1590,
+    "official_site": "https://www.tamoil.it",
+    "description": "Cerchio arancione e blu con raggio Tamoil",
+    "files": {
+      "logo": {
+        "filename": "tamoil.png",
+        "resolution": "1080x1080",
+        "mode": "RGBA",
+        "source_url": "https://api.pieno.plus/assets/images/loghi/tamoil.png"
+      },
+      "favicon": {
+        "filename": "tamoil_favicon.png",
+        "resolution": "48x48",
+        "mode": "RGBA",
+        "source_url": "https://icons.duckduckgo.com/ip3/tamoil.com.ico"
+      },
+      "svg": "tamoil.svg"
+    }
+  },
+  {
+    "id": "conad",
+    "name": "Conad Carburanti",
+    "stations_count": 53,
+    "official_site": "https://www.conad.it",
+    "description": "Margherita Conad su fondo trasparente",
+    "files": {
+      "logo": {
+        "filename": "conad.png",
+        "resolution": "512x512",
+        "mode": "RGBA",
+        "source_url": "https://cdn.worldvectorlogo.com/logos/conad.svg"
+      },
+      "favicon": {
+        "filename": "conad_favicon.png",
+        "resolution": "180x180",
+        "mode": "RGBA",
+        "source_url": "https://www.conad.it/etc.clientlibs/conad-corporate/clientlibs/clientlib-site/resources/corporate/favicons/apple-touch-icon.png"
+      }
+    }
+  },
+  {
+    "id": "repsol",
+    "name": "Repsol",
+    "stations_count": 15,
+    "official_site": "https://www.repsol.com",
+    "description": "Emblema tricolore Repsol rosso, bianco, arancio e blu",
+    "files": {
+      "logo": {
+        "filename": "repsol.png",
+        "resolution": "960x1064",
+        "mode": "RGBA",
+        "source_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Repsol_2025_(vertical).svg?width=512"
+      },
+      "favicon": {
+        "filename": "repsol_favicon.png",
+        "resolution": "96x96",
+        "mode": "RGBA",
+        "source_url": "https://www.repsol.com/content/dam/global/favicon/favicon-96x96.png"
+      }
+    }
+  },
+  {
+    "id": "beyfin",
+    "name": "Beyfin",
+    "stations_count": 119,
+    "official_site": "https://www.beyfin.it",
+    "description": "Quadrifoglio verde Beyfin",
+    "files": {
+      "logo": {
+        "filename": "beyfin.png",
+        "resolution": "1080x1080",
+        "mode": "RGBA",
+        "source_url": "https://api.pieno.plus/assets/images/loghi/beyfin.png"
+      },
+      "favicon": {
+        "filename": "beyfin_favicon.png",
+        "resolution": "180x180",
+        "mode": "RGBA",
+        "source_url": "https://www.beyfin.it/static/favicon/apple-touch-icon.png"
+      }
+    }
+  },
+  {
+    "id": "neutral",
+    "name": "Pompe Bianche / No Logo",
+    "stations_count": 3608,
+    "official_site": "",
+    "description": "Erogatore carburante neutro per pompe bianche e distributori indipendenti",
+    "files": {
+      "logo": {
+        "filename": "neutral.png",
+        "resolution": "1080x1080",
+        "mode": "RGBA",
+        "source_url": "https://api.pieno.plus/assets/images/loghi/pompe-bianche.png"
+      }
+    }
+  },
+  {
+    "id": "shell",
+    "name": "Shell",
+    "stations_count": 177,
+    "official_site": "https://www.shell.it",
+    "description": "Conchiglia iconica Shell gialla e rossa",
+    "files": {
+      "logo": {
+        "filename": "shell.png",
+        "resolution": "1080x1080",
+        "mode": "RGBA",
+        "source_url": "https://api.pieno.plus/assets/images/loghi/shell.png"
+      },
+      "favicon": {
+        "filename": "shell_favicon.png",
+        "resolution": "180x180",
+        "mode": "RGBA",
+        "source_url": "https://www.shell.it/etc.clientlibs/amidala/clientlibs/theme-base/resources/favicon/apple-touch-icon.png"
+      }
+    }
+  },
+  {
+    "id": "europam",
+    "name": "Europam",
+    "stations_count": 227,
+    "official_site": "https://www.europam.it",
+    "description": "Logo Europam con cerchio dinamico blu e verde",
+    "files": {
+      "logo": {
+        "filename": "europam.png",
+        "resolution": "1080x1080",
+        "mode": "RGBA",
+        "source_url": "https://api.pieno.plus/assets/images/loghi/europam.png"
+      },
+      "favicon": {
+        "filename": "europam_favicon.png",
+        "resolution": "300x300",
+        "mode": "RGBA",
+        "source_url": "https://europam.it/wp-content/uploads/2020/04/cropped-europam_icon-300x300.png"
+      }
+    }
+  },
+  {
+    "id": "retitalia",
+    "name": "Retitalia",
+    "stations_count": 214,
+    "official_site": "https://www.retitalia.eu",
+    "description": "Logo Retitalia con tricolore italiano",
+    "files": {
+      "logo": {
+        "filename": "retitalia.png",
+        "resolution": "1080x1080",
+        "mode": "RGBA",
+        "source_url": "https://api.pieno.plus/assets/images/loghi/retitalia.png"
+      },
+      "favicon": {
+        "filename": "retitalia_favicon.png",
+        "resolution": "192x192",
+        "mode": "RGBA",
+        "source_url": "https://www.retitalia.eu/wp-content/uploads/2024/02/Favicon-rg-192.png"
+      }
+    }
+  },
+  {
+    "id": "energas",
+    "name": "Energas",
+    "stations_count": 166,
+    "official_site": "https://energasq8.it",
+    "description": "Logo Energas azzurro e blu",
+    "files": {
+      "logo": {
+        "filename": "energas.png",
+        "resolution": "1080x1080",
+        "mode": "RGBA",
+        "source_url": "https://api.pieno.plus/assets/images/loghi/energas.png"
+      },
+      "favicon": {
+        "filename": "energas_favicon.png",
+        "resolution": "180x180",
+        "mode": "RGBA",
+        "source_url": "https://energasq8.it/wp-content/uploads/2019/07/cropped-favicon-energas-180x180.jpg"
+      }
+    }
+  },
+  {
+    "id": "giap",
+    "name": "Giap Petroli",
+    "stations_count": 153,
+    "official_site": "https://www.giap.it",
+    "description": "Logo Giap Petroli verde e rosso",
+    "files": {
+      "logo": {
+        "filename": "giap.png",
+        "resolution": "1080x1080",
+        "mode": "RGBA",
+        "source_url": "https://api.pieno.plus/assets/images/loghi/giap.png"
+      },
+      "favicon": {
+        "filename": "giap_favicon.png",
+        "resolution": "48x48",
+        "mode": "RGBA",
+        "source_url": "https://www.giap.it/Public/giapinf/StrutturaSito/favicon_giap.gif"
+      }
+    }
+  },
+  {
+    "id": "keropetrol",
+    "name": "Keropetrol",
+    "stations_count": 136,
+    "official_site": "https://keropetrol.com",
+    "description": "Logo Keropetrol fiammante",
+    "files": {
+      "logo": {
+        "filename": "keropetrol.png",
+        "resolution": "1080x1080",
+        "mode": "RGBA",
+        "source_url": "https://api.pieno.plus/assets/images/loghi/keropetrol.png"
+      }
+    }
+  },
+  {
+    "id": "vega",
+    "name": "Vega Carburanti",
+    "stations_count": 122,
+    "official_site": "https://www.vegacarburanti.it",
+    "description": "Logo Vega Carburanti rosso e blu",
+    "files": {
+      "logo": {
+        "filename": "vega.png",
+        "resolution": "1080x1080",
+        "mode": "RGBA",
+        "source_url": "https://api.pieno.plus/assets/images/loghi/vega.png"
+      },
+      "favicon": {
+        "filename": "vega_favicon.png",
+        "resolution": "192x192",
+        "mode": "RGBA",
+        "source_url": "https://www.vegacarburanti.it/wp-content/uploads/2025/10/cropped-favicon-vegacarburanti-192x192.png"
+      }
+    }
+  },
+  {
+    "id": "costantin",
+    "name": "Costantin",
+    "stations_count": 114,
+    "official_site": "https://costantin.com",
+    "description": "Logo Costantin",
+    "files": {
+      "logo": {
+        "filename": "costantin.png",
+        "resolution": "1080x1080",
+        "mode": "RGBA",
+        "source_url": "https://api.pieno.plus/assets/images/loghi/costantin.png"
+      },
+      "favicon": {
+        "filename": "costantin_favicon.png",
+        "resolution": "300x300",
+        "mode": "RGBA",
+        "source_url": "https://costantin.com/wp-content/uploads/2024/04/favicon-300x300.jpg"
+      }
+    }
+  },
+  {
+    "id": "sanmarcopetroli",
+    "name": "San Marco Petroli",
+    "stations_count": 106,
+    "official_site": "https://www.sanmarcopetroli.it",
+    "description": "Leone di San Marco alato San Marco Petroli",
+    "files": {
+      "logo": {
+        "filename": "sanmarcopetroli.png",
+        "resolution": "1080x1080",
+        "mode": "RGBA",
+        "source_url": "https://api.pieno.plus/assets/images/loghi/san-marco-petroli.png"
+      }
+    }
+  },
+  {
+    "id": "aquila",
+    "name": "Aquila Energie",
+    "stations_count": 64,
+    "official_site": "https://www.aquilaenergie.it",
+    "description": "Simbolo aquila stilizzata Aquila Energie",
+    "files": {
+      "logo": {
+        "filename": "aquila.png",
+        "resolution": "512x512",
+        "mode": "RGBA",
+        "source_url": "https://www.aquilaenergie.it/wp-content/uploads/2023/09/aquila_energie-favicon.svg"
+      },
+      "favicon": {
+        "filename": "aquila_favicon.png",
+        "resolution": "512x512",
+        "mode": "RGBA",
+        "source_url": "https://www.aquilaenergie.it/wp-content/uploads/2023/09/aquila_energie-favicon.svg"
+      }
+    }
+  },
+  {
+    "id": "lukoil",
+    "name": "Lukoil",
+    "stations_count": 50,
+    "official_site": "https://www.lukoil.com",
+    "description": "Logo Lukoil rosso e bianco",
+    "files": {
+      "logo": {
+        "filename": "lukoil.png",
+        "resolution": "1080x1080",
+        "mode": "RGBA",
+        "source_url": "https://api.pieno.plus/assets/images/loghi/lukoil.png"
+      }
+    }
+  },
+  {
+    "id": "sarnioil",
+    "name": "Sarni Oil",
+    "stations_count": 96,
+    "official_site": "https://www.sarnioil.it",
+    "description": "Logo Sarni Oil con goccia",
+    "files": {
+      "logo": {
+        "filename": "sarnioil.png",
+        "resolution": "1080x1080",
+        "mode": "RGBA",
+        "source_url": "https://api.pieno.plus/assets/images/loghi/sarni-oil.png"
+      }
+    }
+  },
+  {
+    "id": "toil",
+    "name": "Toil",
+    "stations_count": 116,
+    "official_site": "",
+    "description": "Logo Toil Carburanti",
+    "files": {
+      "logo": {
+        "filename": "toil.png",
+        "resolution": "1080x1080",
+        "mode": "RGBA",
+        "source_url": "https://api.pieno.plus/assets/images/loghi/toil.png"
+      }
+    }
+  },
+  {
+    "id": "loro",
+    "name": "Loro",
+    "stations_count": 90,
+    "official_site": "",
+    "description": "Logo Loro F.lli",
+    "files": {
+      "logo": {
+        "filename": "loro.png",
+        "resolution": "1080x1080",
+        "mode": "RGBA",
+        "source_url": "https://api.pieno.plus/assets/images/loghi/loro.png"
+      }
+    }
+  },
+  {
+    "id": "enerpetroli",
+    "name": "Enerpetroli",
+    "stations_count": 85,
+    "official_site": "https://www.enerpetroli.it",
+    "description": "Logo Enerpetroli",
+    "files": {
+      "logo": {
+        "filename": "enerpetroli.png",
+        "resolution": "1080x1080",
+        "mode": "RGBA",
+        "source_url": "https://api.pieno.plus/assets/images/loghi/enerpetroli.png"
+      }
+    }
+  },
+  {
+    "id": "ego",
+    "name": "Ego Petroli",
+    "stations_count": 84,
+    "official_site": "",
+    "description": "Logo Ego Petroli",
+    "files": {
+      "logo": {
+        "filename": "ego.png",
+        "resolution": "1080x1080",
+        "mode": "RGBA",
+        "source_url": "https://api.pieno.plus/assets/images/loghi/ego.png"
+      }
+    }
+  },
+  {
+    "id": "petrolgamma",
+    "name": "Petrol Gamma",
+    "stations_count": 69,
+    "official_site": "",
+    "description": "Logo Petrol Gamma",
+    "files": {
+      "logo": {
+        "filename": "petrolgamma.png",
+        "resolution": "1080x1080",
+        "mode": "RGBA",
+        "source_url": "https://api.pieno.plus/assets/images/loghi/petrol-gamma.png"
+      }
+    }
+  },
+  {
+    "id": "siafuel",
+    "name": "Sia Fuel",
+    "stations_count": 63,
+    "official_site": "",
+    "description": "Logo Sia Fuel",
+    "files": {
+      "logo": {
+        "filename": "siafuel.png",
+        "resolution": "1080x1080",
+        "mode": "RGBA",
+        "source_url": "https://api.pieno.plus/assets/images/loghi/sia-fuel.png"
+      }
+    }
+  },
+  {
+    "id": "afpetroli",
+    "name": "AF Petroli",
+    "stations_count": 47,
+    "official_site": "",
+    "description": "Logo AF Petroli",
+    "files": {
+      "logo": {
+        "filename": "afpetroli.png",
+        "resolution": "1080x1080",
+        "mode": "RGBA",
+        "source_url": "https://api.pieno.plus/assets/images/loghi/af-petroli.png"
+      }
+    }
+  }
+]

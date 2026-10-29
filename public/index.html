@@ -335,7 +335,7 @@
             <span>Distributori in area</span>
           </div>
           <div class="stats-cards">
-            <div class="stat-card">
+            <div class="stat-card visible">
               <div class="stat-label">Visibili</div>
               <div class="stat-value" id="count-visible">0</div>
               <div class="stat-sub">nella visuale corrente</div>
@@ -369,10 +369,43 @@
       </div>
     </aside>
 
+    <!-- BACKDROP MOBILE (chiude la sidebar al tocco fuori su smartphone) -->
+    <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+
     <!-- ==========================================
          AREA MAPPA PRINCIPALE (FULLSCREEN)
          ========================================== -->
     <main id="map-container" class="map-container">
+      <!-- Pulsante Hamburger Flottante per Mobile (visibile a sidebar chiusa) -->
+      <button id="mobile-hamburger-btn" class="mobile-floating-hamburger" title="Apri menu e filtri" aria-label="Apri menu e filtri">
+        <svg class="icon-material" viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+          <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+        </svg>
+      </button>
+
+      <!-- Pulsante Flottante GPS (Centra sulla mia posizione - raggio ~20 km) -->
+      <button id="btn-floating-gps" class="floating-gps-btn" title="Centra sulla mia posizione (raggio ~20 km)" aria-label="Centra sulla mia posizione">
+        <svg class="icon-material" viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+          <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
+        </svg>
+      </button>
+
+      <!-- Overlay Animazione Caricamento Mappa e Dati -->
+      <div id="map-loader" class="map-loader-overlay">
+        <div class="map-loader-card">
+          <div class="map-loader-spinner-wrapper">
+            <div class="map-loader-spinner"></div>
+            <div class="map-loader-icon">
+              <svg class="icon-material" viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                <path d="M19.77 7.23l.01-.01-3.72-3.72L15 4.56l2.11 2.11c-.94.36-1.61 1.26-1.61 2.33a2.5 2.5 0 002.5 2.5c.36 0 .69-.08 1-.21v7.21c0 .55-.45 1-1 1s-1-.45-1-1V14c0-1.1-.9-2-2-2h-1V5c0-1.1-.9-2-2-2H6c-1.1 0-2 .9-2 2v16h10v-7.5h1.5v5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V9c0-.69-.28-1.32-.73-1.77zM12 10H6V5h6v5zm6 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="map-loader-text" id="map-loader-text">Caricamento mappa...</div>
+          <div class="map-loader-subtext" id="map-loader-subtext">Elaborazione distributori MIMIT in corso</div>
+        </div>
+      </div>
+
       <div id="map"></div>
     </main>
   </div>

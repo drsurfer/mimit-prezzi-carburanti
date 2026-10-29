@@ -54,6 +54,120 @@ const BrandLogos = (function() {
       match: ['beyfin'],
       name: 'Beyfin',
       primaryColor: '#16a34a'
+    },
+    shell: {
+      key: 'shell',
+      match: ['shell'],
+      name: 'Shell',
+      primaryColor: '#ffd800'
+    },
+    europam: {
+      key: 'europam',
+      match: ['europam'],
+      name: 'Europam',
+      primaryColor: '#0066b2'
+    },
+    retitalia: {
+      key: 'retitalia',
+      match: ['retitalia'],
+      name: 'Retitalia',
+      primaryColor: '#0f265c'
+    },
+    energas: {
+      key: 'energas',
+      match: ['energas'],
+      name: 'Energas',
+      primaryColor: '#0096d6'
+    },
+    giap: {
+      key: 'giap',
+      match: ['giap'],
+      name: 'Giap Petroli',
+      primaryColor: '#ed1c24'
+    },
+    keropetrol: {
+      key: 'keropetrol',
+      match: ['keropetrol'],
+      name: 'Keropetrol',
+      primaryColor: '#e30613'
+    },
+    vega: {
+      key: 'vega',
+      match: ['vega'],
+      name: 'Vega Carburanti',
+      primaryColor: '#da291c'
+    },
+    costantin: {
+      key: 'costantin',
+      match: ['costantin'],
+      name: 'Costantin',
+      primaryColor: '#dc2626'
+    },
+    sanmarcopetroli: {
+      key: 'sanmarcopetroli',
+      match: ['san marco', 'sanmarcopetroli', 'smp'],
+      name: 'San Marco Petroli',
+      primaryColor: '#c21b26'
+    },
+    aquila: {
+      key: 'aquila',
+      match: ['aquila'],
+      name: 'Aquila Energie',
+      primaryColor: '#ee741e'
+    },
+    lukoil: {
+      key: 'lukoil',
+      match: ['lukoil'],
+      name: 'Lukoil',
+      primaryColor: '#ed1c24'
+    },
+    sarnioil: {
+      key: 'sarnioil',
+      match: ['sarni'],
+      name: 'Sarni Oil',
+      primaryColor: '#1073b9'
+    },
+    toil: {
+      key: 'toil',
+      match: ['toil'],
+      name: 'Toil',
+      primaryColor: '#0082c8'
+    },
+    loro: {
+      key: 'loro',
+      match: ['loro'],
+      name: 'Loro',
+      primaryColor: '#e12323'
+    },
+    enerpetroli: {
+      key: 'enerpetroli',
+      match: ['enerpetroli'],
+      name: 'Enerpetroli',
+      primaryColor: '#008040'
+    },
+    ego: {
+      key: 'ego',
+      match: ['ego'],
+      name: 'Ego Petroli',
+      primaryColor: '#e64614'
+    },
+    petrolgamma: {
+      key: 'petrolgamma',
+      match: ['petrol gamma', 'petrolgamma'],
+      name: 'Petrol Gamma',
+      primaryColor: '#1e78be'
+    },
+    siafuel: {
+      key: 'siafuel',
+      match: ['sia fuel', 'siafuel'],
+      name: 'Sia Fuel',
+      primaryColor: '#008cb4'
+    },
+    afpetroli: {
+      key: 'afpetroli',
+      match: ['af petroli', 'afpetroli'],
+      name: 'AF Petroli',
+      primaryColor: '#d21e1e'
     }
   };
 

@@ -48,12 +48,17 @@ def run_tests():
             check("Selezione Colonne Spreadsheet in Opzioni", 'id="spreadsheet-cols-config"' in html and 'data-col-target="prezzo_benzina_self"' in html)
             check("Header Spreadsheet con Maniglie Ridimensionamento", 'class="col-resizer"' in html and 'data-col="nome"' in html)
             check("Icona e Modale Note Legali & Disclaimer", 'id="btn-legal"' in html and 'id="legal-modal"' in html and 'Open Data' in html)
+            check("Pulsante Mobile Hamburger e Backdrop", 'id="mobile-hamburger-btn"' in html and 'id="sidebar-backdrop"' in html)
+            check("Pulsante Flottante GPS Centra Posizione", 'id="btn-floating-gps"' in html and 'floating-gps-btn' in html)
+            check("Overlay Animazione Caricamento Mappa", 'id="map-loader"' in html and 'map-loader-card' in html)
             check("Rimozione Sezione Esportazione Layer", 'btn-export-geojson' not in html and 'btn-export-kml' not in html)
 
         # 2. CSS con mini-rail, no scrollbar popup e scrollbar dark
         with urllib.request.urlopen(f"{base}/css/style.css") as r:
             css = r.read().decode()
             check("CSS Mini-rail 56px", '.mini-rail' in css and '--mini-rail-width: 56px' in css)
+            check("CSS Responsive Mobile (max-width: 768px)", '@media (max-width: 768px)' in css and '.sidebar-backdrop' in css)
+            check("CSS Controlli Flottanti GPS e Hamburger Mobile", '.floating-gps-btn' in css and '.mobile-floating-hamburger' in css)
             check("CSS Contrasto Sfondo Finestra Opzioni rispetto a Sidebar", '--bg-dropdown: #f1f5f9' in css and '--border-dropdown' in css)
             check("CSS Finestra Spreadsheet Resizabile", 'resize: both' in css and '.spreadsheet-modal-card' in css)
             check("CSS Maniglie Colonna e Regole Hiding Colonne", '.col-resizer' in css and '#spreadsheet-table.hide-col-' in css)
@@ -62,6 +67,8 @@ def run_tests():
             check("CSS Rimozione Gap Header Popup", '.gm-style-iw-chr' in css and 'height: 0 !important' in css)
             check("CSS Visibilita X in Dark Mode con pseudo-elementi", '.gm-style .gm-ui-hover-effect::before' in css and '[data-theme="dark"] .gm-style .gm-ui-hover-effect::before' in css)
             check("CSS Link Indicazioni Compatto", '.popup-directions-link' in css and '.directions-icon' in css)
+            check("CSS Pulsante Condivisione Scheda e Tooltip Orario", '.popup-share-link' in css and '.popup-time-badge' in css)
+            check("CSS Overlay Caricamento Mappa", '.map-loader-overlay' in css and '.map-loader-spinner' in css)
             check("CSS Dark Scrollbar", 'color-scheme: dark' in css and '--scrollbar-thumb' in css)
             check("CSS Glow Ripple Concentrico Alta Visibilita", '.beacon-pulse-ring' in css and '#00e676' in css and 'ring-4' in css)
             check("CSS Glow Differenziato per Carburante (Verde Benzina, Blu Gasolio)", '.cheapest-glow-beacon.gasolio' in css and '#0091ff' in css)
@@ -80,11 +87,16 @@ def run_tests():
                 if js_file == "map-manager.js":
                     check("map-manager.js supporta setHidePoi", 'setHidePoi' in js and 'featureType: "poi"' in js)
                     check("map-manager.js Glow Beacon sotto al Popup InfoWindow", 'overlayLayer' in js and 'overlayPane' in js)
+                    check("map-manager.js Geolocalizzazione e Marker Posizione Utente", 'centerOnUserLocation' in js and 'setUserLocation' in js)
+                    check("map-manager.js Condivisione e Tooltip Orario", 'popup-share-link' in js and 'popup-time-badge' in js)
+                    check("map-manager.js Metodi Gestione Loader Mappa", 'showLoading' in js and 'hideLoading' in js)
                 if js_file == "app.js":
                     check("app.js setupSpreadsheetModal e setupLegalModal", 'setupSpreadsheetModal' in js and 'setupLegalModal' in js)
                     check("app.js Gestione Paginazione e Ordinamento Spreadsheet", 'renderSpreadsheetTable' in js and 'spreadsheetState' in js)
                     check("app.js Ridimensionamento Colonne e Config Colonne Visibili", 'setupColumnResizers' in js and 'setupSpreadsheetColumnConfig' in js)
                     check("app.js Esportazione CSV Italiano (; e virgola decimale)", 'exportSpreadsheetCSV' in js and 'getSpreadsheetCurrentData' in js)
+                    check("app.js Geolocalizzazione con raggio ~20km e Gestione Mobile", 'centerOnUserLocation(10)' in js and 'isMobileDevice' in js)
+                    check("app.js Gestione Condivisione Web Share / Clipboard", 'popup-share-link' in js and 'copyToClipboard' in js)
 
         # 4. Verifica PNG Loghi
         for logo in ["eni.png", "ip.png", "q8.png", "esso.png", "neutral.png"]:

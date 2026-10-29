@@ -118,6 +118,7 @@ class MapManager {
     this.leafletCluster = null;
     this.leafletTileLayer = null;
     this.leafletCheapestMarker = null;
+    this.leafletUserMarker = null;
 
     // Riferimenti Google Maps
     this.googleMap = null;
@@ -125,14 +126,17 @@ class MapManager {
     this.googleMarkers = [];
     this.googleInfoWindow = null;
     this.googleCheapestOverlay = null;
+    this.googleUserMarker = null;
 
     this.stations = [];
     this.activeStationId = null;
     this.cheapestStation = null;
+    this.userLocation = null;
     this.debounceTimer = null;
   }
 
   init() {
+    this.showLoading('Inizializzazione mappa...', 'Preparazione motore cartografico');
     const promise = (this.currentProvider === 'google')
       ? this.initGoogleMaps()
       : this.initLeaflet();
@@ -140,6 +144,8 @@ class MapManager {
     return promise.then(() => {
       if (this.stations && this.stations.length > 0) {
         this.renderStations(this.stations);
+      } else {
+        this.hideLoading();
       }
     });
   }
@@ -149,6 +155,9 @@ class MapManager {
 
     if (this.currentProvider === 'google' && this.googleMap) {
       this.applyGoogleMapsStyles();
+      if (this.googleCluster && typeof this.googleCluster.render === 'function') {
+        this.googleCluster.render();
+      }
     } else if (this.currentProvider === 'leaflet' && this.leafletMap) {
       this.updateLeafletTiles();
     }
@@ -212,25 +221,49 @@ class MapManager {
         this.googleCheapestOverlay.setMap(this.googleMap);
       }
 
-      // Marker Clusterer
+      // Renderer monocromatico e super leggero per i cluster:
+      // - Colore unico coerente con la palette (chiaro o scuro)
+      // - Zero calcoli statistici di media o cicli di clock sprecati
+      const customClusterRenderer = {
+        render: ({ count, position }) => {
+          const isDark = Boolean(this.isDarkMode);
+          const clusterColor = isDark ? '#3b82f6' : '#1e3a8a';
+          const outerOpacity = isDark ? '0.35' : '0.25';
+          const midOpacity = isDark ? '0.6' : '0.55';
+
+          const svg = `<svg fill="${clusterColor}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="48" height="48">
+            <circle cx="120" cy="120" opacity="${outerOpacity}" r="110" />
+            <circle cx="120" cy="120" opacity="${midOpacity}" r="88" />
+            <circle cx="120" cy="120" opacity="1" r="66" />
+            <text x="50%" y="50%" style="fill:#ffffff; font-weight:700;" text-anchor="middle" font-size="44" dominant-baseline="central" font-family="system-ui, -apple-system, sans-serif">${count}</text>
+          </svg>`;
+
+          return new google.maps.Marker({
+            position: position,
+            zIndex: Number(google.maps.Marker.MAX_ZINDEX) + count,
+            title: `Cluster: ${count} distributori`,
+            icon: {
+              url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`,
+              scaledSize: new google.maps.Size(48, 48),
+              anchor: new google.maps.Point(24, 24)
+            }
+          });
+        }
+      };
+
+      // Marker Clusterer ottimizzato per semplificare il rendering a zoom medio/basso
       if (window.markerClusterer && window.markerClusterer.MarkerClusterer) {
         this.googleCluster = new markerClusterer.MarkerClusterer({
           map: this.googleMap,
-          algorithmOptions: { maxZoom: 13 }
+          renderer: customClusterRenderer,
+          algorithmOptions: { maxZoom: 13, gridSize: 60 }
         });
       }
 
-      // Aggiorna l'overlay e i bounds continuamente al movimento e cambio zoom
+      // Sincronizza i bounds solo quando il movimento della mappa termina (idle),
+      // evitando layout thrashing e violazioni di rendering durante il pan
       this.googleMap.addListener('idle', () => {
         this.triggerBoundsChanged();
-        if (this.googleCheapestOverlay) this.googleCheapestOverlay.draw();
-      });
-
-      this.googleMap.addListener('zoom_changed', () => {
-        if (this.googleCheapestOverlay) this.googleCheapestOverlay.draw();
-      });
-
-      this.googleMap.addListener('drag', () => {
         if (this.googleCheapestOverlay) this.googleCheapestOverlay.draw();
       });
 
@@ -245,6 +278,21 @@ class MapManager {
     if (window.google && window.google.maps) {
       return Promise.resolve();
     }
+
+    // Soppressione pulita dei notice informativi e di deprecazione di Google Maps
+    if (!window._gmapsWarnFiltered) {
+      window._gmapsWarnFiltered = true;
+      const origWarn = console.warn;
+      console.warn = function(...args) {
+        if (args.length > 0 && typeof args[0] === 'string') {
+          if (args[0].includes('google.maps.Marker is deprecated') || args[0].includes('styles property cannot be set')) {
+            return;
+          }
+        }
+        origWarn.apply(console, args);
+      };
+    }
+
     return new Promise((resolve, reject) => {
       const existingScript = document.getElementById('google-maps-script');
       if (existingScript) existingScript.remove();
@@ -322,11 +370,23 @@ class MapManager {
   // ==========================================
   cleanupMaps() {
     if (this.leafletMap) {
+      if (this.leafletUserMarker) {
+        this.leafletMap.removeLayer(this.leafletUserMarker);
+        this.leafletUserMarker = null;
+      }
       this.leafletMap.remove();
       this.leafletMap = null;
       this.leafletCluster = null;
       this.leafletTileLayer = null;
       this.leafletCheapestMarker = null;
+    }
+    if (this.googleUserMarker) {
+      if (typeof this.googleUserMarker.setMap === 'function') {
+        this.googleUserMarker.setMap(null);
+      } else {
+        this.googleUserMarker.map = null;
+      }
+      this.googleUserMarker = null;
     }
     if (this.googleCheapestOverlay) {
       this.googleCheapestOverlay.setMap(null);
@@ -337,7 +397,12 @@ class MapManager {
       this.googleCluster = null;
     }
     for (let i = 0; i < this.googleMarkers.length; i++) {
-      this.googleMarkers[i].setMap(null);
+      const m = this.googleMarkers[i];
+      if (typeof m.setMap === 'function') {
+        m.setMap(null);
+      } else {
+        m.map = null;
+      }
     }
     this.googleMarkers = [];
     this.googleMap = null;
@@ -346,17 +411,20 @@ class MapManager {
   }
 
   switchProvider(provider, apiKey) {
+    this.showLoading('Cambio motore cartografico...', provider === 'google' ? 'Inizializzazione Google Maps' : 'Inizializzazione OpenStreetMap');
     if (provider === 'google') {
       return this.initGoogleMaps(apiKey).then(() => {
         this.currentProvider = 'google';
         this.renderStations(this.stations);
         if (this.cheapestStation) this.highlightCheapestStation(this.cheapestStation);
+        if (this.userLocation) this.setUserLocation(this.userLocation.lat, this.userLocation.lng, this.userLocation.accuracy);
       });
     } else {
       this.currentProvider = 'leaflet';
       return this.initLeaflet().then(() => {
         this.renderStations(this.stations);
         if (this.cheapestStation) this.highlightCheapestStation(this.cheapestStation);
+        if (this.userLocation) this.setUserLocation(this.userLocation.lat, this.userLocation.lng, this.userLocation.accuracy);
       });
     }
   }
@@ -385,16 +453,90 @@ class MapManager {
     return null;
   }
 
-  setView(lat, lng, zoom = 14) {
+  setView(lat, lng, zoom = 14, openPopup = true) {
     if (this.currentProvider === 'google' && this.googleMap) {
       this.googleMap.setCenter({ lat, lng });
       this.googleMap.setZoom(zoom);
-      // Apri automaticamente il popup del marker corrispondente
-      this.openMarkerPopupAt(lat, lng);
+      if (openPopup) {
+        this.openMarkerPopupAt(lat, lng);
+      }
     } else if (this.leafletMap) {
       this.leafletMap.setView([lat, lng], zoom);
-      this.openMarkerPopupAt(lat, lng);
+      if (openPopup) {
+        this.openMarkerPopupAt(lat, lng);
+      }
     }
+  }
+
+  /**
+   * Mostra il marker GPS della posizione attuale dell'utente (punto blu stile Material)
+   */
+  setUserLocation(lat, lng, accuracy = 0) {
+    this.userLocation = { lat, lng, accuracy };
+
+    if (this.currentProvider === 'google' && this.googleMap) {
+      if (!this.googleUserMarker) {
+        this.googleUserMarker = new google.maps.Marker({
+          position: { lat, lng },
+          map: this.googleMap,
+          title: "La tua posizione",
+          zIndex: 999,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 9,
+            fillColor: "#2563eb",
+            fillOpacity: 1,
+            strokeColor: "#ffffff",
+            strokeWeight: 3
+          }
+        });
+      } else {
+        this.googleUserMarker.setPosition({ lat, lng });
+        this.googleUserMarker.setMap(this.googleMap);
+      }
+    } else if (this.leafletMap) {
+      if (this.leafletUserMarker) {
+        this.leafletMap.removeLayer(this.leafletUserMarker);
+      }
+      this.leafletUserMarker = L.circleMarker([lat, lng], {
+        radius: 9,
+        fillColor: "#2563eb",
+        color: "#ffffff",
+        weight: 3,
+        opacity: 1,
+        fillOpacity: 1,
+        zIndexOffset: 1000
+      }).bindTooltip("La tua posizione", { permanent: false, direction: 'top' });
+      this.leafletUserMarker.addTo(this.leafletMap);
+    }
+  }
+
+  /**
+   * Rileva la geolocalizzazione del dispositivo e centra la mappa
+   * a un livello di zoom che racchiude un'area di almeno 20 km di raggio (zoom 10).
+   */
+  centerOnUserLocation(zoom = 10) {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error("Geolocalizzazione non supportata dal browser"));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          const acc = pos.coords.accuracy || 50;
+          this.setUserLocation(lat, lng, acc);
+          this.setView(lat, lng, zoom, false);
+          resolve({ lat, lng, accuracy: acc });
+        },
+        (err) => {
+          reject(err);
+        },
+        { enableHighAccuracy: true, timeout: 9000, maximumAge: 60000 }
+      );
+    });
   }
 
   openMarkerPopupAt(lat, lng) {
@@ -403,13 +545,23 @@ class MapManager {
 
     if (this.currentProvider === 'google' && this.googleMap) {
       const marker = this.googleMarkers.find(m => {
-        const pos = m.getPosition();
-        return pos && Math.abs(pos.lat() - lat) < 0.0001 && Math.abs(pos.lng() - lng) < 0.0001;
+        const pos = m.position || (typeof m.getPosition === 'function' ? m.getPosition() : null);
+        if (!pos) return false;
+        const mLat = (typeof pos.lat === 'function') ? pos.lat() : pos.lat;
+        const mLng = (typeof pos.lng === 'function') ? pos.lng() : pos.lng;
+        return Math.abs(mLat - lat) < 0.0001 && Math.abs(mLng - lng) < 0.0001;
       });
       if (marker && this.googleInfoWindow) {
         const html = this.generatePopupContent(station);
         this.googleInfoWindow.setContent(html);
-        this.googleInfoWindow.open(this.googleMap, marker);
+        if (typeof marker.setMap === 'function') {
+          this.googleInfoWindow.open(this.googleMap, marker);
+        } else {
+          this.googleInfoWindow.open({
+            anchor: marker,
+            map: this.googleMap
+          });
+        }
       }
     }
   }
@@ -430,7 +582,7 @@ class MapManager {
         const bounds = this.getBounds();
         if (bounds) this.options.onBoundsChanged(bounds);
       }
-    }, 120);
+    }, 200);
   }
 
   // ==========================================
@@ -451,10 +603,20 @@ class MapManager {
       this.googleCluster.clearMarkers();
     }
     for (let i = 0; i < this.googleMarkers.length; i++) {
-      this.googleMarkers[i].setMap(null);
+      const m = this.googleMarkers[i];
+      if (typeof m.setMap === 'function') m.setMap(null);
+      else m.map = null;
     }
     this.googleMarkers = [];
 
+    if (!stations || stations.length === 0) {
+      this.hideLoading();
+      return;
+    }
+
+    // Creazione ottimizzata ad alta efficienza:
+    // Google Maps Marker con optimized: true (layer Canvas GPU ultraveloce, senza DOM overhead)
+    const markers = [];
     for (let i = 0; i < stations.length; i++) {
       const s = stations[i];
       if (!s.latitudine || !s.longitudine) continue;
@@ -471,6 +633,7 @@ class MapManager {
           scaledSize: new google.maps.Size(34, 46),
           anchor: new google.maps.Point(17, 45)
         },
+        optimized: true, // Rendering Canvas ad altissime prestazioni per 20.000+ marker
         zIndex: 10
       });
 
@@ -484,16 +647,21 @@ class MapManager {
         }
       });
 
-      this.googleMarkers.push(marker);
+      markers.push(marker);
     }
 
+    this.googleMarkers = markers;
+
+    // Aggiunta in un unico passaggio atomico al clusterer per calcolo KD-tree fulmineo
     if (this.useClustering && this.googleCluster) {
-      this.googleCluster.addMarkers(this.googleMarkers);
+      this.googleCluster.addMarkers(markers);
     } else {
-      for (let i = 0; i < this.googleMarkers.length; i++) {
-        this.googleMarkers[i].setMap(this.googleMap);
+      for (let i = 0; i < markers.length; i++) {
+        markers[i].setMap(this.googleMap);
       }
     }
+
+    this.hideLoading();
   }
 
   renderLeafletMarkers(stations) {
@@ -534,6 +702,7 @@ class MapManager {
     } else {
       markers.forEach(m => m.addTo(this.leafletMap));
     }
+    this.hideLoading();
   }
 
   // ==========================================
@@ -629,6 +798,9 @@ class MapManager {
 
     const dataAggiornamento = s.ultimo_aggiornamento ? `Aggiornato: ${s.ultimo_aggiornamento}` : 'Rilevazione MIMIT';
 
+    const safeTitle = (nome + ' (' + bandiera + ')').replace(/"/g, '&quot;');
+    const shareText = `Prezzi ${bandiera} - ${nome}\n${indirizzo}\nBenzina Self: ${s.prezzo_benzina_self ? Number(s.prezzo_benzina_self).toFixed(3) + ' €' : 'N.D.'}\nGasolio Self: ${s.prezzo_gasolio_self ? Number(s.prezzo_gasolio_self).toFixed(3) + ' €' : 'N.D.'}`.replace(/"/g, '&quot;');
+
     let defaultHtml = `
       <div class="station-popup">
         <div class="popup-header-row">
@@ -679,19 +851,32 @@ class MapManager {
         ${extraFuelsHtml}
 
         <div class="popup-footer">
-          <div class="update-time">
-            <svg class="icon-material" viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="vertical-align:-1px; margin-right:3px;">
-              <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
-            </svg>
-            <span>${dataAggiornamento}</span>
+          <div class="popup-footer-left">
+            <div class="popup-time-badge" title="${dataAggiornamento}" aria-label="${dataAggiornamento}">
+              <svg class="icon-material" viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+                <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+              </svg>
+            </div>
           </div>
-          <a href="https://www.google.com/maps/dir/?api=1&destination=${s.latitudine},${s.longitudine}" 
-             target="_blank" rel="noopener noreferrer" class="popup-directions-link" title="Apri indicazioni stradali in Google Maps">
-            <svg class="directions-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-              <path d="M22.41 10.59l-9-9c-.79-.79-2.05-.79-2.83 0l-9 9c-.79.79-.79 2.05 0 2.83l9 9c.79.79 2.05.79 2.83 0l9-9c.78-.79.78-2.05 0-2.83zM14 14.5V12h-4v3H8v-4c0-.55.45-1 1-1h5V7.5l3.5 3.5-3.5 3.5z"/>
-            </svg>
-            <span>Indicazioni</span>
-          </a>
+          <div class="popup-footer-actions">
+            <button class="popup-share-link" 
+                    data-share-title="${safeTitle}" 
+                    data-share-text="${shareText}" 
+                    data-share-url="https://www.google.com/maps/search/?api=1&query=${s.latitudine},${s.longitudine}" 
+                    title="Condividi prezzi e posizione">
+              <svg class="icon-material" viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+                <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/>
+              </svg>
+              <span>Condividi</span>
+            </button>
+            <a href="https://www.google.com/maps/dir/?api=1&destination=${s.latitudine},${s.longitudine}" 
+               target="_blank" rel="noopener noreferrer" class="popup-directions-link" title="Apri indicazioni stradali in Google Maps">
+              <svg class="directions-icon" viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                <path d="M22.41 10.59l-9-9c-.79-.79-2.05-.79-2.83 0l-9 9c-.79.79-.79 2.05 0 2.83l9 9c.79.79 2.05.79 2.83 0l9-9c.78-.79.78-2.05 0-2.83zM14 14.5V12h-4v3H8v-4c0-.55.45-1 1-1h5V7.5l3.5 3.5-3.5 3.5z"/>
+              </svg>
+              <span>Indicazioni</span>
+            </a>
+          </div>
         </div>
       </div>
     `;
@@ -701,6 +886,22 @@ class MapManager {
     }
 
     return defaultHtml;
+  }
+
+  showLoading(text = 'Caricamento mappa...', subtext = 'Elaborazione distributori in corso') {
+    const overlay = document.getElementById('map-loader');
+    if (!overlay) return;
+    const txt = document.getElementById('map-loader-text');
+    const sub = document.getElementById('map-loader-subtext');
+    if (txt) txt.textContent = text;
+    if (sub) sub.textContent = subtext;
+    overlay.classList.remove('hidden');
+  }
+
+  hideLoading() {
+    const overlay = document.getElementById('map-loader');
+    if (!overlay) return;
+    overlay.classList.add('hidden');
   }
 }
 

@@ -40,6 +40,17 @@ const App = (function() {
     loadStatus();
     loadBrands();
     loadAllStations();
+
+    // Rilevamento smartphone / schermo verticale: sidebar collassata e GPS automatico (~20 km raggio)
+    const isMobileDevice = (window.innerWidth <= 768) || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+    if (isMobileDevice) {
+      setSidebarCollapsed(true);
+      if (navigator.geolocation) {
+        setTimeout(() => {
+          locateUser(true);
+        }, 800);
+      }
+    }
   }
 
   function cacheDomElements() {
@@ -50,6 +61,11 @@ const App = (function() {
     dom.miniRailThemeBtn = document.getElementById('mini-rail-theme-btn');
     dom.miniRailTableBtn = document.getElementById('mini-rail-table-btn');
     dom.miniRailLegalBtn = document.getElementById('mini-rail-legal-btn');
+
+    // Elementi mobile responsive
+    dom.sidebarBackdrop = document.getElementById('sidebar-backdrop');
+    dom.mobileHamburgerBtn = document.getElementById('mobile-hamburger-btn');
+    dom.btnFloatingGps = document.getElementById('btn-floating-gps');
 
     // Pulsante opzioni pulito e borderless posizionato in basso
     dom.btnSettingsBottom = document.getElementById('btn-settings-bottom');
@@ -110,17 +126,38 @@ const App = (function() {
   // GESTIONE SIDEBAR A STRISCIA MINI-RAIL (56PX)
   // ==========================================
   function setupSidebarToggle() {
-    // Collassa a strisciolina mini-rail
+    // Collassa a strisciolina mini-rail (o chiudi cassetto su mobile)
     if (dom.toggleSidebarBtn) {
       dom.toggleSidebarBtn.addEventListener('click', () => {
         setSidebarCollapsed(true);
       });
     }
 
-    // Espandi con l'hamburger button della strisciolina
+    // Espandi con l'hamburger button della strisciolina (desktop)
     if (dom.miniRailExpandBtn) {
       dom.miniRailExpandBtn.addEventListener('click', () => {
         setSidebarCollapsed(false);
+      });
+    }
+
+    // Hamburger button mobile flottante
+    if (dom.mobileHamburgerBtn) {
+      dom.mobileHamburgerBtn.addEventListener('click', () => {
+        setSidebarCollapsed(false);
+      });
+    }
+
+    // Tocco sul backdrop mobile per chiudere il cassetto
+    if (dom.sidebarBackdrop) {
+      dom.sidebarBackdrop.addEventListener('click', () => {
+        setSidebarCollapsed(true);
+      });
+    }
+
+    // Tasto flottante GPS sulla mappa
+    if (dom.btnFloatingGps) {
+      dom.btnFloatingGps.addEventListener('click', () => {
+        locateUser(false);
       });
     }
 
@@ -149,6 +186,16 @@ const App = (function() {
   function setSidebarCollapsed(collapsed) {
     if (!dom.sidebar) return;
     dom.sidebar.classList.toggle('collapsed', collapsed);
+
+    // Gestione backdrop su smartphone
+    if (dom.sidebarBackdrop) {
+      dom.sidebarBackdrop.classList.toggle('active', !collapsed && window.innerWidth <= 768);
+    }
+
+    // Gestione visibilità hamburger mobile
+    if (dom.mobileHamburgerBtn) {
+      dom.mobileHamburgerBtn.style.display = (collapsed && window.innerWidth <= 768) ? 'flex' : (window.innerWidth <= 768 ? 'none' : '');
+    }
 
     // Chiudi il pannello impostazioni se collassi
     if (collapsed && dom.settingsDropdownPanel) {
@@ -428,32 +475,93 @@ const App = (function() {
     }
 
     if (dom.btnRefreshData) dom.btnRefreshData.addEventListener('click', refreshMimitData);
+
+    // Condivisione nativa della scheda distributore (Web Share API con fallback su Appunti)
+    document.addEventListener('click', (e) => {
+      const shareBtn = e.target.closest('.popup-share-link');
+      if (!shareBtn) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      const title = shareBtn.dataset.shareTitle || 'Distributore Carburanti';
+      const text = shareBtn.dataset.shareText || '';
+      const url = shareBtn.dataset.shareUrl || window.location.href;
+
+      if (navigator.share) {
+        navigator.share({
+          title: title,
+          text: text,
+          url: url
+        }).catch((err) => {
+          if (err && err.name !== 'AbortError') {
+            copyToClipboard(text + '\n' + url);
+          }
+        });
+      } else {
+        copyToClipboard(text + '\n' + url);
+      }
+    });
+
+    // Gestione ridimensionamento e rotazione dispositivo mobile
+    window.addEventListener('resize', () => {
+      const isMobileNow = window.innerWidth <= 768;
+      if (dom.sidebarBackdrop) {
+        dom.sidebarBackdrop.classList.toggle('active', isMobileNow && !dom.sidebar.classList.contains('collapsed'));
+      }
+      if (dom.mobileHamburgerBtn) {
+        dom.mobileHamburgerBtn.style.display = (isMobileNow && dom.sidebar.classList.contains('collapsed')) ? 'flex' : (isMobileNow ? 'none' : '');
+      }
+      if (mapManager) mapManager.invalidateSize();
+    });
   }
 
-  function locateUser() {
-    if (!navigator.geolocation) {
-      showToast('Geolocalizzazione non supportata');
+  function locateUser(isAuto = false) {
+    if (dom.btnFloatingGps) dom.btnFloatingGps.classList.add('locating');
+
+    if (!isAuto) {
+      showToast('Rilevamento posizione GPS in corso...');
+    }
+
+    if (!mapManager) {
+      if (dom.btnFloatingGps) dom.btnFloatingGps.classList.remove('locating');
       return;
     }
-    showToast('Rilevamento posizione...');
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        mapManager.setView(lat, lng, 14);
-        showToast('Posizione trovata!');
-      },
-      (err) => {
-        showToast('Impossibile rilevare la posizione: ' + err.message);
-      },
-      { timeout: 10000, enableHighAccuracy: true }
-    );
+
+    mapManager.centerOnUserLocation(10)
+      .then((pos) => {
+        if (dom.btnFloatingGps) dom.btnFloatingGps.classList.remove('locating');
+        showToast('Mappa centrata sulla tua posizione (raggio ~20 km)');
+        if (window.innerWidth <= 768) {
+          setSidebarCollapsed(true);
+        }
+      })
+      .catch((err) => {
+        if (dom.btnFloatingGps) dom.btnFloatingGps.classList.remove('locating');
+        if (!isAuto) {
+          showToast('Impossibile rilevare la posizione: ' + (err.message || 'Permesso negato'));
+        }
+      });
+  }
+
+  function copyToClipboard(content) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(content).then(() => {
+        showToast('Dettagli distributore copiati negli appunti!');
+      }).catch(() => {
+        showToast('Impossibile copiare negli appunti');
+      });
+    } else {
+      showToast('Dettagli distributore pronti');
+    }
   }
 
   // ==========================================
   // CARICAMENTO INIZIALE COMPATTO & RENDERING CLIENT-SIDE
   // ==========================================
   function loadAllStations() {
+    if (mapManager) {
+      mapManager.showLoading('Caricamento distributori...', 'Recupero oltre 20.000 impianti MIMIT');
+    }
     showToast('Caricamento archivio distributori...');
     // Cerca prima il file statico JSON (ottimizzato per GitHub Pages), con fallback su API backend
     fetch('data/stations.json')
@@ -468,6 +576,7 @@ const App = (function() {
         applyFiltersClientSide();
       })
       .catch(err => {
+        if (mapManager) mapManager.hideLoading();
         console.error('Errore nel caricamento distributori:', err);
         showToast('Errore di caricamento: ' + err.message);
       });
@@ -551,12 +660,61 @@ const App = (function() {
   function updateVisibleStatsAndCheapest(bounds) {
     if (!filteredStations || filteredStations.length === 0) return;
 
-    let visible = filteredStations;
-    if (bounds) {
-      visible = filteredStations.filter(s => {
-        return s.latitudine >= bounds.south && s.latitudine <= bounds.north &&
-               s.longitudine >= bounds.west && s.longitudine <= bounds.east;
-      });
+    const hasBounds = Boolean(bounds);
+    const south = hasBounds ? bounds.south : -90;
+    const north = hasBounds ? bounds.north : 90;
+    const west = hasBounds ? bounds.west : -180;
+    const east = hasBounds ? bounds.east : 180;
+
+    const targetFuel = activeFilters.cheapestFuelTarget || 'benzina';
+    let minPrice = Infinity;
+    let bestStation = null;
+
+    let benzinaSum = 0, benzinaCount = 0;
+    let gasolioSum = 0, gasolioCount = 0;
+    const visible = [];
+
+    // Singolo passaggio ottimizzato (O(N)) per filtraggio coordinate, medie e distributore economico
+    for (let i = 0; i < filteredStations.length; i++) {
+      const s = filteredStations[i];
+      const lat = s.latitudine;
+      const lng = s.longitudine;
+
+      if (hasBounds) {
+        if (lat < south || lat > north || lng < west || lng > east) {
+          continue;
+        }
+      }
+
+      visible.push(s);
+
+      // Calcolo medie carburanti dell'area visibile
+      const b = s.prezzo_benzina_self || s.prezzo_benzina_servito;
+      if (b && b > 0.5 && b < 4.0) {
+        benzinaSum += b;
+        benzinaCount++;
+      }
+      const g = s.prezzo_gasolio_self || s.prezzo_gasolio_servito;
+      if (g && g > 0.5 && g < 4.0) {
+        gasolioSum += g;
+        gasolioCount++;
+      }
+
+      // Ricerca contestuale del prezzo più economico
+      if (targetFuel !== 'none') {
+        let targetPrice = null;
+        if (targetFuel === 'gasolio') {
+          targetPrice = s.prezzo_gasolio_self || s.prezzo_gasolio_min;
+        } else if (targetFuel === 'benzina') {
+          targetPrice = s.prezzo_benzina_self || s.prezzo_benzina_min;
+        }
+
+        if (targetPrice && targetPrice > 0.5 && targetPrice < minPrice) {
+          minPrice = targetPrice;
+          bestStation = s;
+          bestStation._bestPrice = targetPrice;
+        }
+      }
     }
 
     if (dom.countVisible) {
@@ -568,33 +726,12 @@ const App = (function() {
       renderSpreadsheetTable();
     }
 
-    // Calcolo medie carburanti dell'area visibile
-    let benzinaSum = 0, benzinaCount = 0;
-    let gasolioSum = 0, gasolioCount = 0;
-
-    for (let i = 0; i < visible.length; i++) {
-      const s = visible[i];
-      const b = s.prezzo_benzina_self || s.prezzo_benzina_servito;
-      if (b && b > 0.5 && b < 4.0) {
-        benzinaSum += b;
-        benzinaCount++;
-      }
-      const g = s.prezzo_gasolio_self || s.prezzo_gasolio_servito;
-      if (g && g > 0.5 && g < 4.0) {
-        gasolioSum += g;
-        gasolioCount++;
-      }
-    }
-
     if (dom.avgBenzina) {
       dom.avgBenzina.textContent = benzinaCount > 0 ? (benzinaSum / benzinaCount).toFixed(3) + ' €' : '-';
     }
     if (dom.avgGasolio) {
       dom.avgGasolio.textContent = gasolioCount > 0 ? (gasolioSum / gasolioCount).toFixed(3) + ' €' : '-';
     }
-
-    // Carburante di riferimento per il calcolo del più economico (opzioni: 'none', 'benzina', 'gasolio')
-    const targetFuel = activeFilters.cheapestFuelTarget || 'benzina';
 
     // Se l'opzione è 'none' (Nessuno), disattiviamo il glowing beacon sulla mappa
     if (targetFuel === 'none') {
@@ -603,25 +740,6 @@ const App = (function() {
         mapManager.highlightCheapestStation(null, 'none');
       }
       return;
-    }
-
-    let minPrice = Infinity;
-    let bestStation = null;
-
-    for (let i = 0; i < visible.length; i++) {
-      const s = visible[i];
-      let targetPrice = null;
-      if (targetFuel === 'gasolio') {
-        targetPrice = s.prezzo_gasolio_self || s.prezzo_gasolio_min;
-      } else if (targetFuel === 'benzina') {
-        targetPrice = s.prezzo_benzina_self || s.prezzo_benzina_min;
-      }
-
-      if (targetPrice && targetPrice > 0.5 && targetPrice < minPrice) {
-        minPrice = targetPrice;
-        bestStation = s;
-        bestStation._bestPrice = targetPrice;
-      }
     }
 
     cheapestStation = bestStation;
@@ -1244,7 +1362,7 @@ const App = (function() {
           <td data-col="actions" style="text-align:center;">
             <button class="btn-map-focus" data-lat="${s.latitudine}" data-lng="${s.longitudine}" title="Centra ed evidenzia sulla mappa">
               <svg class="icon-material" viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
-                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5z"/>
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
               </svg>
               <span>Vedi</span>
             </button>
